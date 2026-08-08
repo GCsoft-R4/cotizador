@@ -59,6 +59,7 @@ from apps.ventas.views import (  # noqa: F401
     enviar_cotizacion_email,
     actualizar_descuento_cotizacion,
     buscar_productos_ajax,
+    diagnostico_datos,
     ReciboListView,
     ReciboCreateView,
     ReciboUpdateView,

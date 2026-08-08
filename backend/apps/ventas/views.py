@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
@@ -464,3 +464,38 @@ class RemitoUpdateView(LoginRequiredMixin, UpdateView):
 class RemitoDeleteView(LoginRequiredMixin, DeleteView):
     model = Remito
     success_url = reverse_lazy("remito_list")
+
+
+@login_required
+def diagnostico_datos(request):
+    from django.db.models import Count
+
+    productos_total = Producto.objects.count()
+    productos_activos = Producto.objects.filter(activo=True).count()
+    productos_inactivos = productos_total - productos_activos
+    proveedores_total = Producto.objects.values("proveedor_id").distinct().count()
+    cotizaciones_total = Cotizacion.objects.count()
+    cotizaciones_con_items = (
+        Cotizacion.objects.annotate(n_items=Count("items")).filter(n_items__gt=0).count()
+    )
+    cotizaciones_sin_items = cotizaciones_total - cotizaciones_con_items
+    items_total = CotizacionItem.objects.count()
+
+    ultimas = list(
+        Cotizacion.objects.annotate(n_items=Count("items"))
+        .order_by("-id")[:10]
+        .values("id", "numero", "cliente__nombre", "n_items", "total", "descuento_porcentaje")
+    )
+
+    ctx = {
+        "productos_total": productos_total,
+        "productos_activos": productos_activos,
+        "productos_inactivos": productos_inactivos,
+        "proveedores_total": proveedores_total,
+        "cotizaciones_total": cotizaciones_total,
+        "cotizaciones_con_items": cotizaciones_con_items,
+        "cotizaciones_sin_items": cotizaciones_sin_items,
+        "items_total": items_total,
+        "ultimas": ultimas,
+    }
+    return render(request, "cotizaciones/diagnostico.html", ctx)

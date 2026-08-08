@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block title %}Diagnóstico de datos{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+  <div>
+    <h4 class="fw-bold mb-0" style="color:#1e3c72"><i class="bi bi-clipboard-data me-2"></i>Diagnóstico de datos</h4>
+    <small class="text-muted">Resumen de productos y cotizaciones en la base de datos</small>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-3">
+    <div class="card stat-card h-100">
+      <div class="card-body">
+        <div class="text-muted small fw-semibold">Productos (total)</div>
+        <div class="fs-3 fw-bold">{{ productos_total }}</div>
+        <div class="small text-muted">{{ productos_activos }} activos · {{ productos_inactivos }} inactivos</div>
+        <div class="small text-muted">Proveedores: {{ proveedores_total }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card stat-card h-100">
+      <div class="card-body">
+        <div class="text-muted small fw-semibold">Cotizaciones</div>
+        <div class="fs-3 fw-bold">{{ cotizaciones_total }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card stat-card h-100">
+      <div class="card-body">
+        <div class="text-muted small fw-semibold">Con productos</div>
+        <div class="fs-3 fw-bold">{{ cotizaciones_con_items }}</div>
+        <div class="small text-muted">{{ items_total }} items en total</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card stat-card h-100">
+      <div class="card-body">
+        <div class="text-muted small fw-semibold">Sin productos</div>
+        <div class="fs-3 fw-bold">{{ cotizaciones_sin_items }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if productos_total == 0 %}
+<div class="alert alert-warning">
+  <strong>No hay productos cargados.</strong> Por eso el buscador del modal y el listado están vacíos.
+  Cargá productos (importación Excel o botón "Nuevo") para poder agregarlos a las cotizaciones.
+</div>
+{% elif productos_activos == 0 %}
+<div class="alert alert-warning">
+  Hay {{ productos_total }} productos pero todos están inactivos. El buscador del modal solo muestra productos activos.
+</div>
+{% endif %}
+
+{% if cotizaciones_total > 0 and cotizaciones_con_items == 0 %}
+<div class="alert alert-info">
+  Hay {{ cotizaciones_total }} cotizaciones pero ninguna tiene productos cargados.
+</div>
+{% endif %}
+
+<div class="card table-card">
+  <div class="card-header bg-white fw-semibold small py-2 px-3">
+    <i class="bi bi-list me-2 text-warning"></i>Últimas cotizaciones
+  </div>
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Número</th>
+          <th>Cliente</th>
+          <th class="text-center">Items</th>
+          <th class="text-end">Descuento</th>
+          <th class="text-end">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in ultimas %}
+        <tr>
+          <td>{{ c.id }}</td>
+          <td>{{ c.numero }}</td>
+          <td>{{ c.cliente__nombre }}</td>
+          <td class="text-center">{{ c.n_items }}</td>
+          <td class="text-end">{{ c.descuento_porcentaje|default:0|floatformat:2 }}%</td>
+          <td class="text-end">${{ c.total|floatformat:2 }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted py-4">No hay cotizaciones.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

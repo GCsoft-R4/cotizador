@@ -139,6 +139,7 @@ urlpatterns = [
     path('api/pending-cotizaciones-count/', views.pending_cotizaciones_count, name='pending_cotizaciones_count'),
     path('api/pending-cotizaciones/', views.pending_cotizaciones_list, name='pending_cotizaciones_list'),
     path('api/productos/buscar/', views.buscar_productos_ajax, name='buscar_productos_ajax'),
+    path('diagnostico/', views.diagnostico_datos, name='diagnostico_datos'),
 
     # FacturaciÃ³n
     path('facturacion/', views.FacturaListView.as_view(), name='factura_list'),
