@@ -1,4 +1,5 @@
 ﻿import os
+from decimal import Decimal
 from io import BytesIO
 
 from django.conf import settings
@@ -20,6 +21,12 @@ from .pdf_colors import (
     COLOR_ROW_HEADER, COLOR_SECONDARY, COLOR_TOTAL_BG,
 )
 from ..services.documents.pdf_helpers import styles
+
+
+def _fmt_descuento_pct(val):
+    """Formatea el porcentaje de descuento sin ceros sobrantes (18.00 -> '18', 10.50 -> '10.5')."""
+    d = Decimal(str(val))
+    return str(int(d)) if d == d.to_integral_value() else str(d.normalize())
 
 
 def _build_elements(cotizacion):
@@ -137,16 +144,18 @@ def _build_elements(cotizacion):
                 Paragraph(f'${item.subtotal:,.2f}', st['tabla_derecha']),
             ])
 
+        descuento_pct = Decimal(str(cotizacion.descuento_porcentaje or 0))
+
         table_data.append(['', '', '', Paragraph('Subtotal:', st['tabla_derecha']),
                             Paragraph(f'${cotizacion.subtotal_bruto:,.2f}', st['tabla_derecha'])])
-        if cotizacion.descuento_porcentaje > 0:
-            table_data.append(['', '', '', Paragraph(f'Descuento {cotizacion.descuento_porcentaje}%:', st['tabla_derecha']),
+        if descuento_pct > 0:
+            table_data.append(['', '', '', Paragraph(f'Descuento ({_fmt_descuento_pct(descuento_pct)}%):', st['tabla_derecha']),
                                 Paragraph(f'-${cotizacion.monto_descuento:,.2f}', st['tabla_derecha'])])
         table_data.append(['', '', '', Paragraph('TOTAL:', st['tabla_total']),
                             Paragraph(f'${cotizacion.total:,.2f}', st['tabla_total'])])
 
         last_row = len(table_data) - 1
-        subtotal_row = last_row - (2 if cotizacion.descuento_porcentaje > 0 else 1)
+        subtotal_row = last_row - (2 if descuento_pct > 0 else 1)
 
         items_table = Table(
             table_data,

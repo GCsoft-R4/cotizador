@@ -1,9 +1,10 @@
 ﻿from decimal import Decimal
-from unittest.mock import patch, MagicMock
 from io import BytesIO
+from unittest.mock import patch, MagicMock
 
 import pytest
 from django.urls import reverse
+from PyPDF2 import PdfReader
 
 from ..models import Cotizacion, CotizacionItem, Factura, Cliente
 from ..utils.pdf_utils import (
@@ -93,12 +94,24 @@ class TestGenerarPdfBuffer:
         content = buffer.read()
         assert len(content) > 0
 
-    def test_con_descuento_no_rompe(self, cotizacion):
+    def test_con_descuento_muestra_fila(self, cotizacion):
         cotizacion.descuento_porcentaje = Decimal("10.00")
         cotizacion.calcular_total()
         buffer = generar_pdf_buffer(cotizacion)
         content = buffer.getvalue()
         assert len(content) > 0
+        reader = PdfReader(BytesIO(content))
+        text = "\n".join(page.extract_text() or "" for page in reader.pages)
+        assert "Descuento (10%):" in text
+        assert "-$20.00" in text
+
+    def test_sin_descuento_no_muestra_fila(self, cotizacion):
+        cotizacion.descuento_porcentaje = Decimal("0.00")
+        cotizacion.calcular_total()
+        buffer = generar_pdf_buffer(cotizacion)
+        reader = PdfReader(BytesIO(buffer.getvalue()))
+        text = "\n".join(page.extract_text() or "" for page in reader.pages)
+        assert "Descuento" not in text
 
     def test_con_observaciones(self, cotizacion):
         cotizacion.observaciones = "Test observaciÃ³n"

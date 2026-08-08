@@ -44,7 +44,7 @@ class Cotizacion(models.Model):
         self.subtotal_bruto = sum(i.subtotal for i in items)
         self.monto_descuento = self.subtotal_bruto * (self.descuento_porcentaje / Decimal("100"))
         self.total = self.subtotal_bruto - self.monto_descuento
-        self.save(update_fields=["subtotal_bruto", "monto_descuento", "total"])
+        self.save(update_fields=["subtotal_bruto", "monto_descuento", "total", "descuento_porcentaje"])
         return self.total
 
     def get_absolute_url(self):
