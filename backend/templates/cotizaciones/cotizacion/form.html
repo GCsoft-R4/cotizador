@@ -183,27 +183,59 @@ function eliminarItem(idx) {
   recalcularTotales();
 }
 
-function renderItems() {
+function updateItemsInput() {
   document.getElementById('itemsInput').value = JSON.stringify(
     items.map(i => ({ producto_id: i.producto_id, cantidad: i.cantidad, precio_unitario: i.precio_unitario }))
   );
+}
+
+function renderItems() {
+  updateItemsInput();
+  const tbody = document.getElementById('productosTbody');
   if (items.length === 0) {
-    document.getElementById('productosTbody').innerHTML =
+    tbody.innerHTML =
       '<tr><td colspan="5" class="text-center py-4 text-muted small">' +
       '<i class="bi bi-inbox" style="font-size:2rem"></i><br>No hay productos. Hacé clic en "Agregar producto".</td></tr>';
     return;
   }
-  document.getElementById('productosTbody').innerHTML = items.map((item, idx) =>
+  tbody.innerHTML = items.map((item, idx) =>
     `<tr>
       <td class="fw-semibold">${item.nombre}</td>
-      <td><input type="text" inputmode="numeric" class="form-control form-control-sm" style="width:70px" value="${item.cantidad}"
-             oninput="items[${idx}].cantidad=parseNum(this.value);this.closest('tr').querySelector('.subtotal').textContent='$'+(items[${idx}].cantidad*items[${idx}].precio_unitario).toFixed(2);recalcularTotales();"></td>
-      <td><input type="text" inputmode="decimal" class="form-control form-control-sm" style="width:110px" value="${item.precio_unitario.toFixed(2)}"
-             oninput="items[${idx}].precio_unitario=parseNum(this.value);this.closest('tr').querySelector('.subtotal').textContent='$'+(items[${idx}].cantidad*items[${idx}].precio_unitario).toFixed(2);document.getElementById('itemsInput').value = JSON.stringify(items.map(i => ({ producto_id: i.producto_id, cantidad: i.cantidad, precio_unitario: i.precio_unitario })));recalcularTotales();"></td>
+      <td><input type="text" inputmode="numeric" class="form-control form-control-sm item-cant" data-idx="${idx}" style="width:70px" value="${item.cantidad}"></td>
+      <td><input type="text" inputmode="decimal" class="form-control form-control-sm item-precio" data-idx="${idx}" style="width:110px" value="${item.precio_unitario.toFixed(2)}"></td>
       <td class="fw-bold subtotal">$${(item.cantidad * item.precio_unitario).toFixed(2)}</td>
-      <td class="text-end"><button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="eliminarItem(${idx})"><i class="bi bi-trash"></i></button></td>
+      <td class="text-end"><button type="button" class="btn btn-sm btn-outline-danger border-0 btn-eliminar" data-idx="${idx}"><i class="bi bi-trash"></i></button></td>
     </tr>`
   ).join('');
+
+  tbody.querySelectorAll('.item-cant').forEach(input => {
+    input.addEventListener('input', function() {
+      const idx = parseInt(this.dataset.idx);
+      items[idx].cantidad = parseNum(this.value);
+      const tr = this.closest('tr');
+      tr.querySelector('.subtotal').textContent = '$' + (items[idx].cantidad * items[idx].precio_unitario).toFixed(2);
+      updateItemsInput();
+      recalcularTotales();
+    });
+  });
+
+  tbody.querySelectorAll('.item-precio').forEach(input => {
+    input.addEventListener('input', function() {
+      const idx = parseInt(this.dataset.idx);
+      items[idx].precio_unitario = parseNum(this.value);
+      const tr = this.closest('tr');
+      tr.querySelector('.subtotal').textContent = '$' + (items[idx].cantidad * items[idx].precio_unitario).toFixed(2);
+      updateItemsInput();
+      recalcularTotales();
+    });
+  });
+
+  tbody.querySelectorAll('.btn-eliminar').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const idx = parseInt(this.dataset.idx);
+      eliminarItem(idx);
+    });
+  });
 }
 
 function recalcularTotales() {
