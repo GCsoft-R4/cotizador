@@ -153,6 +153,18 @@ items.push({
 {% endif %}
 
 // ========== Gestión de items ==========
+function parseNum(v) {
+  if (typeof v === 'number') return v;
+  if (!v) return 0;
+  let s = String(v).trim();
+  if (s.indexOf(',') !== -1 && s.indexOf('.') !== -1) {
+    s = s.replace(/\./g, '').replace(',', '.');
+  } else if (s.indexOf(',') !== -1) {
+    s = s.replace(',', '.');
+  }
+  return parseFloat(s) || 0;
+}
+
 function agregarItem(id, nombre, precio) {
   const existente = items.find(i => i.producto_id === id);
   if (existente) {
@@ -185,9 +197,9 @@ function renderItems() {
     `<tr>
       <td class="fw-semibold">${item.nombre}</td>
       <td><input type="number" class="form-control form-control-sm" style="width:70px" value="${item.cantidad}"
-             min="1" step="1" oninput="items[${idx}].cantidad=Number(this.value);this.closest('tr').querySelector('.subtotal').textContent='$'+(items[${idx}].cantidad*items[${idx}].precio_unitario).toFixed(2);recalcularTotales();"></td>
+             min="1" step="1" oninput="items[${idx}].cantidad=parseNum(this.value);this.closest('tr').querySelector('.subtotal').textContent='$'+(items[${idx}].cantidad*items[${idx}].precio_unitario).toFixed(2);recalcularTotales();"></td>
       <td><input type="number" class="form-control form-control-sm" style="width:110px" value="${item.precio_unitario.toFixed(2)}"
-             step="0.01" min="0.01" oninput="items[${idx}].precio_unitario=Number(this.value);this.closest('tr').querySelector('.subtotal').textContent='$'+(items[${idx}].cantidad*items[${idx}].precio_unitario).toFixed(2);document.getElementById('itemsInput').value = JSON.stringify(items.map(i => ({ producto_id: i.producto_id, cantidad: i.cantidad, precio_unitario: i.precio_unitario })));recalcularTotales();"></td>
+             step="0.01" min="0.01" oninput="items[${idx}].precio_unitario=parseNum(this.value);this.closest('tr').querySelector('.subtotal').textContent='$'+(items[${idx}].cantidad*items[${idx}].precio_unitario).toFixed(2);document.getElementById('itemsInput').value = JSON.stringify(items.map(i => ({ producto_id: i.producto_id, cantidad: i.cantidad, precio_unitario: i.precio_unitario })));recalcularTotales();"></td>
       <td class="fw-bold subtotal">$${(item.cantidad * item.precio_unitario).toFixed(2)}</td>
       <td class="text-end"><button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="eliminarItem(${idx})"><i class="bi bi-trash"></i></button></td>
     </tr>`
@@ -196,7 +208,7 @@ function renderItems() {
 
 function recalcularTotales() {
   const sub = items.reduce((s, i) => s + i.cantidad * i.precio_unitario, 0);
-  const dp = parseFloat(document.getElementById('descuentoPct').value) || 0;
+  const dp = parseNum(document.getElementById('descuentoPct').value);
   const dm = sub * (dp / 100);
   document.getElementById('subtotalDisplay').textContent = '$' + sub.toFixed(2);
   document.getElementById('descuentoDisplay').textContent = '-$' + dm.toFixed(2);
