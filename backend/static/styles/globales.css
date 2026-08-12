@@ -114,12 +114,6 @@ table:not(.table-responsive) {
 @media (max-width: 991px) {
   .page-inner { padding: 0 1rem 1.5rem !important; }
   
-  /* Columnas ocultas automáticas según prioridad */
-  .table td:nth-child(n+6),
-  .table th:nth-child(n+6) {
-    display: none;
-  }
-  
   .d-mid-none { display: none !important; }
   
   /* Cards y contenedores */
@@ -148,19 +142,6 @@ table:not(.table-responsive) {
 
 /* Mobile */
 @media (max-width: 767px) {
-  /* Tablas: ocultar columnas menos prioritarias */
-  .table td:nth-child(n+4),
-  .table th:nth-child(n+4) {
-    display: none;
-  }
-  .table td:nth-child(2),
-  .table th:nth-child(2) {
-    max-width: 140px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  
   /* Columnas con clase específica para ocultar en mobile */
   .d-mobile-none { display: none !important; }
   
@@ -204,5 +185,18 @@ table:not(.table-responsive) {
   .card-body { padding: .75rem !important; }
   
   .page-header h2 { font-size: 1.1rem !important; }
+  
+  /* Sonner toast responsive */
+  #sonner {
+    left: 12px;
+    right: 12px;
+    max-width: none;
+    width: auto;
+  }
+  
+  /* Stat cards value sizing */
+  .stat-card-value {
+    font-size: 1.5rem !important;
+  }
 }
 

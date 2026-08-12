@@ -769,9 +769,15 @@ body {
     <div class="nav-section">Inventario</div>
 
     <a href="{% url 'producto_list' %}?tipo=producto"
-       class="nav-link">
+       class="nav-link {% if request.GET.tipo == 'producto' %}active{% endif %}">
       <i class="bi bi-box-seam"></i>
-      <span class="lbl">Productos</span>
+      <span class="lbl">Repuestos</span>
+    </a>
+
+    <a href="{% url 'producto_list' %}?tipo_multiple=servicio_soft,servicio_hard"
+       class="nav-link {% if request.GET.tipo_multiple == 'servicio_soft,servicio_hard' %}active{% endif %}">
+      <i class="bi bi-gear"></i>
+      <span class="lbl">Servicios</span>
     </a>
 
     <a href="{% url 'categoria_list' %}"
@@ -789,12 +795,6 @@ body {
     <a href="{% url 'proveedor_list' %}"
        class="nav-link {% if 'proveedor' in request.resolver_match.url_name %}active{% endif %}">
       <i class="bi bi-truck"></i>
-      <span class="lbl">Proveedores</span>
-    </a>
-
-    <a href="{% url 'proveedor_list' %}"
-       class="nav-link {% if 'proveedor' in request.resolver_match.url_name %}active{% endif %}">
-      <i class="bi bi-building-up"></i>
       <span class="lbl">Proveedores</span>
     </a>
 
