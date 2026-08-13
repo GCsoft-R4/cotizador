@@ -142,14 +142,32 @@ let items = [];
 let searchTimeout;
 
 {% if object %}
-{% for item in object.items.all %}
-items.push({
-  producto_id: {{ item.producto.id }},
-  nombre: "{{ item.producto.nombre|escapejs }}",
-  precio_unitario: {{ item.precio_unitario }},
-  cantidad: {{ item.cantidad }}
-});
-{% endfor %}
+  {% for item in object.items.all %}
+  items.push({
+    producto_id: {{ item.producto.id }},
+    nombre: "{{ item.producto.nombre|escapejs }}",
+    precio_unitario: {{ item.precio_unitario }},
+    cantidad: {{ item.cantidad }}
+  });
+  {% endfor %}
+{% elif cotizacion %}
+  {% for item in cotizacion.items.all %}
+  items.push({
+    producto_id: {{ item.producto.id }},
+    nombre: "{{ item.producto.nombre|escapejs }}",
+    precio_unitario: {{ item.precio_unitario }},
+    cantidad: {{ item.cantidad }}
+  });
+  {% endfor %}
+{% elif form.instance and form.instance.pk %}
+  {% for item in form.instance.items.all %}
+  items.push({
+    producto_id: {{ item.producto.id }},
+    nombre: "{{ item.producto.nombre|escapejs }}",
+    precio_unitario: {{ item.precio_unitario }},
+    cantidad: {{ item.cantidad }}
+  });
+  {% endfor %}
 {% endif %}
 
 // ========== Gestión de items ==========
