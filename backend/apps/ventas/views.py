@@ -1,5 +1,5 @@
 import json
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -73,7 +73,10 @@ class CotizacionCreateView(LoginRequiredMixin, CreateView):
         form.instance.usuario = self.request.user
         self.object = form.save()
 
-        descuento = Decimal(self.request.POST.get("descuento_pct", "0"))
+        try:
+            descuento = Decimal(str(self.request.POST.get("descuento_pct", "0") or "0"))
+        except (ValueError, InvalidOperation):
+            descuento = Decimal("0")
         self.object.descuento_porcentaje = descuento
 
         raw = self.request.POST.get("items")
@@ -83,13 +86,22 @@ class CotizacionCreateView(LoginRequiredMixin, CreateView):
                     pid = itm.get("producto_id")
                     if not pid:
                         continue
+                    try:
+                        cant = Decimal(str(itm.get("cantidad") or "1"))
+                    except (ValueError, InvalidOperation):
+                        cant = Decimal("1")
+                    try:
+                        precio = Decimal(str(itm.get("precio_unitario") or "0"))
+                    except (ValueError, InvalidOperation):
+                        precio = Decimal("0")
+
                     CotizacionItem.objects.create(
                         cotizacion=self.object,
                         producto_id=pid,
-                        cantidad=Decimal(itm.get("cantidad", "1")),
-                        precio_unitario=Decimal(itm.get("precio_unitario", "0")),
+                        cantidad=cant,
+                        precio_unitario=precio,
                     )
-            except (json.JSONDecodeError, ValueError):
+            except (json.JSONDecodeError, ValueError, InvalidOperation):
                 pass
 
         self.object.calcular_total()
@@ -108,7 +120,10 @@ class CotizacionUpdateView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         self.object = form.save()
 
-        descuento = Decimal(self.request.POST.get("descuento_pct", "0"))
+        try:
+            descuento = Decimal(str(self.request.POST.get("descuento_pct", "0") or "0"))
+        except (ValueError, InvalidOperation):
+            descuento = Decimal("0")
         self.object.descuento_porcentaje = descuento
 
         raw = self.request.POST.get("items")
@@ -120,13 +135,22 @@ class CotizacionUpdateView(LoginRequiredMixin, UpdateView):
                     pid = itm.get("producto_id")
                     if not pid:
                         continue
+                    try:
+                        cant = Decimal(str(itm.get("cantidad") or "1"))
+                    except (ValueError, InvalidOperation):
+                        cant = Decimal("1")
+                    try:
+                        precio = Decimal(str(itm.get("precio_unitario") or "0"))
+                    except (ValueError, InvalidOperation):
+                        precio = Decimal("0")
+
                     CotizacionItem.objects.create(
                         cotizacion=self.object,
                         producto_id=pid,
-                        cantidad=Decimal(itm.get("cantidad", "1")),
-                        precio_unitario=Decimal(itm.get("precio_unitario", "0")),
+                        cantidad=cant,
+                        precio_unitario=precio,
                     )
-            except (json.JSONDecodeError, ValueError):
+            except (json.JSONDecodeError, ValueError, InvalidOperation):
                 pass
 
         self.object.calcular_total()
