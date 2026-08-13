@@ -1,6 +1,8 @@
 from decimal import Decimal
 from io import BytesIO, StringIO
 import csv
+import json
+import re
 from unittest.mock import patch
 
 import pytest
@@ -323,6 +325,23 @@ class TestCotizacionViewsExtra:
             "producto": prod.pk, "cantidad": 2, "precio_unitario": 100,
         }, follow=True)
         assert CotizacionItem.objects.filter(cotizacion=cot).count() == 1
+
+    def test_edit_form_serializa_items_en_json_script(self):
+        prov = Proveedor.objects.create(nombre="Prov")
+        prod = Producto.objects.create(nombre="Prod", proveedor=prov, precio_unitario=5000)
+        cli = Cliente.objects.create(nombre="Cli")
+        cot = Cotizacion.objects.create(cliente=cli, usuario=self.user)
+        CotizacionItem.objects.create(cotizacion=cot, producto=prod, cantidad=2, precio_unitario=5000)
+        r = self.client.get(reverse("cotizacion_update", args=[cot.pk]))
+        assert r.status_code == 200
+        html = r.content.decode("utf-8")
+        m = re.search(r'<script id="items-initial-data" type="application/json">(.*?)</script>', html)
+        assert m, "items-initial-data no encontrado en el form de edicion"
+        data = json.loads(m.group(1))
+        assert data == [
+            {"producto_id": prod.pk, "nombre": "Prod", "precio_unitario": 5000.0, "cantidad": 2}
+        ]
+        assert "5000,00" not in html, "numero localizado con coma romperia el JS"
 
     def test_eliminar_item_cotizacion(self):
         prov = Proveedor.objects.create(nombre="Prov")

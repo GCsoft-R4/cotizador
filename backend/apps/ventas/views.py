@@ -28,6 +28,20 @@ from cotizaciones.services.communication.email import enviar_cotizacion_por_emai
 # Cotizaciones
 # ============================================
 
+def _items_initial(cotizacion):
+    if not cotizacion or not cotizacion.pk:
+        return []
+    return [
+        {
+            "producto_id": item.producto_id,
+            "nombre": item.producto.nombre,
+            "precio_unitario": float(item.precio_unitario),
+            "cantidad": item.cantidad,
+        }
+        for item in cotizacion.items.select_related("producto").all()
+    ]
+
+
 class CotizacionListView(LoginRequiredMixin, ListView):
     model = Cotizacion
     template_name = "cotizaciones/cotizacion/list.html"
@@ -68,6 +82,11 @@ class CotizacionCreateView(LoginRequiredMixin, CreateView):
     model = Cotizacion
     form_class = CotizacionForm
     template_name = "cotizaciones/cotizacion/form.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["items_initial"] = _items_initial(self.object)
+        return ctx
 
     def form_valid(self, form):
         form.instance.usuario = self.request.user
@@ -116,6 +135,11 @@ class CotizacionUpdateView(LoginRequiredMixin, UpdateView):
     model = Cotizacion
     form_class = CotizacionForm
     template_name = "cotizaciones/cotizacion/form.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["items_initial"] = _items_initial(self.object)
+        return ctx
 
     def form_valid(self, form):
         self.object = form.save()

@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load l10n %}
 {% block title %}{% if object %}Editar Cotización{% else %}Nueva Cotización{% endif %}{% endblock %}
 
 {% block content %}
@@ -59,7 +60,7 @@
                            class="form-control form-control-sm d-inline-block ms-1"
                            style="width:70px;height:28px;font-size:.8rem"
                            step="0.01" min="0" max="100"
-                           value="{{ object.descuento_porcentaje|default:'0' }}"
+                           value="{% localize off %}{{ object.descuento_porcentaje|default:'0' }}{% endlocalize %}"
                            oninput="recalcularTotales()">
                   </td>
                   <td class="text-danger fw-semibold" id="descuentoDisplay">-$0.00</td>
@@ -137,38 +138,15 @@
 {% endblock %}
 
 {% block extra_js %}
+{% if items_initial %}{{ items_initial|json_script:"items-initial-data" }}{% endif %}
 <script>
 let items = [];
 let searchTimeout;
 
-{% if object %}
-  {% for item in object.items.all %}
-  items.push({
-    producto_id: {{ item.producto.id }},
-    nombre: "{{ item.producto.nombre|escapejs }}",
-    precio_unitario: {{ item.precio_unitario }},
-    cantidad: {{ item.cantidad }}
-  });
-  {% endfor %}
-{% elif cotizacion %}
-  {% for item in cotizacion.items.all %}
-  items.push({
-    producto_id: {{ item.producto.id }},
-    nombre: "{{ item.producto.nombre|escapejs }}",
-    precio_unitario: {{ item.precio_unitario }},
-    cantidad: {{ item.cantidad }}
-  });
-  {% endfor %}
-{% elif form.instance and form.instance.pk %}
-  {% for item in form.instance.items.all %}
-  items.push({
-    producto_id: {{ item.producto.id }},
-    nombre: "{{ item.producto.nombre|escapejs }}",
-    precio_unitario: {{ item.precio_unitario }},
-    cantidad: {{ item.cantidad }}
-  });
-  {% endfor %}
-{% endif %}
+const itemsInitialEl = document.getElementById('items-initial-data');
+if (itemsInitialEl) {
+  items = JSON.parse(itemsInitialEl.textContent);
+}
 
 // ========== Gestión de items ==========
 function parseNum(v) {
